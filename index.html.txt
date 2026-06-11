@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOEIC 多益 Part 5 模擬練習系統</title>
+    <style>
+        /* CSS 變數定義，提供現代、高質感的深色/藍色調視覺感受 */
+        :root {
+            --primary: #1e40af;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --success: #10b981;
+            --success-hover: #059669;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --gray-light: #f3f4f6;
+            --gray-border: #e5e7eb;
+            --text-main: #374151;
+            --text-muted: #6b7280;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px 10px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            border: 1px solid var(--gray-border);
+        }
+
+        /* 頂部標題列 */
+        header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            color: #ffffff;
+            padding: 30px 24px;
+            text-align: center;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 0.95rem;
+            color: #93c5fd;
+        }
+
+        /* 內容區塊基礎樣式 */
+        .content-section {
+            padding: 30px 24px;
+        }
+
+        /* 1. 身分確認介面 */
+        #setup-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 50px 24px;
+        }
+
+        .form-group {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-border);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: #ffffff;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-primary:disabled {
+            background-color: var(--gray-border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: #ffffff;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-success:hover {
+            background-color: var(--success-hover);
+        }
+
+        /* 2. 測驗主要介面 (隱藏 init) */
+        #quiz-section {
+            display: none;
+        }
+
+        /* 固定的狀態列：顯示姓名與時間 */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--primary-light);
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            border: 1px solid rgba(30, 64, 175, 0.1);
+        }
+
+        .student-info {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--dark);
+            background-color: #ffffff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-border);
+        }
+
+        .timer-warning {
+            color: var(--danger) !important;
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        /* 題目清單樣式 */
+        .question-card {
+            background-color: #ffffff;
+            border: 1px solid var(--gray-border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .question-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: #cbd5e1;
+        }
+
+        .question-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .question-number {
+            background-color: var(--primary);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.9rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .question-text {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .options-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-left: 40px;
+        }
+
+        @media(min-width: 640px) {
+            .options-list {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .option-item {
+            position: relative;
+        }
+
+        .option-item input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .option-label {
+            display: block;
+            padding: 12px 16px;
+            background-color: #ffffff;
+            border: 1.5px solid var(--gray-border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .option-label:hover {
+            background-color: var(--gray-light);
+            border-color: #cbd5e1;
+        }
+
+        .option-item input[type="radio"]:checked + .option-label {
+            background-color: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* 3. 結果與報告區塊 */
+        #result-section {
+            display: none;
+            text-align: center;
+            padding: 40px 24px;
+        }
+
+        .result-header {
+            margin-bottom: 30px;
+        }
+
+        .score-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            border: 6px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+        }
+
+        .score-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .score-total {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .feedback-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .details-summary {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .result-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* 檢視解析模式：對與錯的樣式標示 */
+        .question-card.correct {
+            border-left: 6px solid var(--success);
+            background-color: #f0fdf4;
+        }
+
+        .question-card.incorrect {
+            border-left: 6px solid var(--danger);
+            background-color: #fef2f2;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .badge-correct {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .explanation {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            border-left: 3px solid var(--primary);
+            text-align: left;
+        }
+
+        .explanation strong {
+            color: var(--primary);
+        }
+
+        .user-answer-indicator {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: left;
+            padding-left: 40px;
+        }
+
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger); }
+
+        /* 說明卡片 */
+        .instruction-card {
+            background-color: var(--gray-light);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: left;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .instruction-card h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .instruction-card ul {
+            padding-left: 20px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .instruction-card li {
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 頂部標題列 -->
+        <header>
+            <h1>TOEIC® Part 5 模擬練習</h1>
+            <p>商業情境單句填空（10題精選 / 限時10分鐘）</p>
+        </header>
+
+        <!-- 1. 身分確認介面 -->
+        <div id="setup-section" class="content-section">
+            <div class="instruction-card">
+                <h3>📝 測驗說明：</h3>
+                <ul>
+                    <li>本測驗包含 10 題多益 Part 5 單句填空。</li>
+                    <li>測驗時間限制為 10 分鐘，時間到會自動強制收卷。</li>
+                    <li>提交答案後可下載詳細的個人成績報告。</li>
+                    <li>請在下方輸入您的姓名或學生證號以開始測驗。</li>
+                </ul>
+            </div>
+
+            <div class="form-group">
+                <label for="student-identity">學生姓名 / 學生證號</label>
+                <input type="text" id="student-identity" placeholder="例如：王小明 或 B11002034" autocomplete="off">
+            </div>
+
+            <button id="start-btn" class="btn btn-primary" disabled>開始測驗</button>
+        </div>
+
+        <!-- 2. 測驗主要介面 -->
+        <div id="quiz-section" class="content-section">
+            <div class="status-bar">
+                <div class="student-info">
+                    👤 考生：<span id="display-student"></span>
+                </div>
+                <div class="timer-container" id="timer-display">
+                    ⏱️ <span id="time-left">10:00</span>
+                </div>
+            </div>
+
+            <!-- 題目渲染區域 -->
+            <form id="quiz-form">
+                <div id="questions-container"></div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button type="button" id="submit-btn" class="btn btn-primary">提交答案</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 3. 結果與報告區塊 -->
+        <div id="result-section" class="content-section">
+            <div class="result-header">
+                <div class="score-circle">
+                    <span class="score-number" id="display-score">0</span>
+                    <span class="score-total">/ 10 題</span>
+                </div>
+                <h2 id="result-feedback" class="feedback-text">做得好！</h2>
+                <p class="details-summary">
+                    作答時間：<span id="display-elapsed">0分0秒</span> | 測驗日期：<span id="display-date"></span>
+                </p>
+            </div>
+
+            <!-- 檢視完整解析按鈕 -->
+            <div class="result-actions">
+                <button id="download-btn" class="btn btn-success">⬇️ 下載個人成績單 (.txt)</button>
+                <button id="review-btn" class="btn btn-primary" style="background-color: var(--dark);">🔍 檢視完整答案解析</button>
+                <button id="restart-btn" class="btn" style="border: 1px solid var(--gray-border); color: var(--text-main); margin-top: 10px;">重新開始練習</button>
+            </div>
+
+            <!-- 複習/解析渲染區 (點選「檢視完整答案解析」後顯示) -->
+            <div id="review-container" style="display: none; margin-top: 40px; text-align: left;">
+                <h3 style="margin-bottom: 20px; font-size: 1.3rem; border-bottom: 2px solid var(--gray-border); padding-bottom: 8px;">完整解析與對答</h3>
+                <div id="review-questions"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 10 題高質量多益 Part 5 商業模擬試題資料庫 ---
+        const questions = [
+            {
+                id: 1,
+                question: "The marketing director proposed _______ the launching date of the new product to avoid clashing with the competitor's campaign.",
+                options: {
+                    A: "postpone",
+                    B: "postponed",
+                    C: "postponing",
+                    D: "to postpone"
+                },
+                correct: "C",
+                explanation: "動詞 propose 後方若直接加動詞，習慣搭配動名詞（V-ing）作受詞，因此 propose postponing（建議延後）為正確用法。"
+            },
+            {
+                id: 2,
+                question: "The final budget proposal must be submitted to the finance department _______ Friday afternoon at 5:00 P.M.",
+                options: {
+                    A: "until",
+                    B: "by",
+                    C: "for",
+                    D: "within"
+                },
+                correct: "B",
+                explanation: "by 表示「在...之前（截止期限）」，修飾一個特定的時間點。until 表示動作持續到某時；within 意為「在...之內」，後方通常接「一段時間」而非「時間點」。"
+            },
+            {
+                id: 3,
+                question: "Please be _______ that all international travelers are required to carry a valid passport and proper visa documentation.",
+                options: {
+                    A: "advised",
+                     hurt: "advising", // 避免語法錯誤，原題選項設計如下
+                    B: "advisor",
+                    C: "advice",
+                    D: "advising"
+                },
+                // 為了使選項標準，重新對應 A, B, C, D
+                options: {
+                    A: "advise",
+                    B: "advised",
+                    C: "advising",
+                    D: "advisable"
+                },
+                correct: "B",
+                explanation: "固定片語 'be advised that...' 意為「請注意/特此通知」，此處 advised 為過去分詞作形容詞用，表示被動地「被告知/提醒」。"
+            },
+            {
+                id: 4,
+                question: "The newly hired administrative assistant has demonstrated an _______ ability to resolve customer complaints efficiently.",
+                options: {
+                    A: "exception",
+                    B: "exceptional",
+                    C: "exceptionally",
+                    D: "excepts"
+                },
+                correct: "B",
+                explanation: "空格位於冠詞 'an' 與名詞 'ability' 之間，需填入形容詞來修飾名詞。'exceptional' 為形容詞，意為「卓越的、傑出的」。"
+            },
+            {
+                id: 5,
+                question: "Due to a technical glitch in our ordering system, some shipments may be _______ delayed.",
+                options: {
+                    A: "temporarily",
+                    B: "temporary",
+                    C: "temporariness",
+                    D: "temperate"
+                },
+                correct: "A",
+                explanation: "空格位於助動詞/be動詞與過去分詞（delayed）之間，應用副詞修飾過去分詞。'temporarily' 意為「暫時地」，符合文意。"
+            },
+            {
+                id: 6,
+                question: "_______ the CEO was attending the annual economic forum in Davos, the chief operating officer managed the negotiation process.",
+                options: {
+                    A: "Because of",
+                    B: "While",
+                    C: "During",
+                    D: "As if"
+                },
+                correct: "B",
+                explanation: "空格後引導一個完整的子句（主詞+動詞），因此需要連接詞。'While' 是連接詞，表示「當...之時 / 在...期間」。During 與 Because of 為介係詞，後接名詞；As if 意為「彷彿」，不符語意。"
+            },
+            {
+                id: 7,
+                question: "Mr. Henderson is widely respected because he always handles challenging negotiations _______.",
+                options: {
+                    A: "professional",
+                    B: "professionalism",
+                    C: "professionally",
+                    D: "profession"
+                },
+                correct: "C",
+                explanation: "空格用以修飾動詞片語 'handles challenging negotiations'，說明其處理事務的方式，因此需要使用副詞 'professionally'（專業地）。"
+            },
+            {
+                id: 8,
+                question: "The research and development team is working diligently to find a _______ solution to the battery overheating issue.",
+                options: {
+                    A: "permanent",
+                    B: "permanence",
+                    C: "permanently",
+                    D: "persevering"
+                },
+                correct: "A",
+                explanation: "空格在不定冠詞 'a' 與名詞 'solution' 之間，應填入形容詞。'permanent'（永久的、長期的）最符合商業情境中「找出長久解決方案」的語意。"
+            },
+            {
+                id: 9,
+                question: "The merger between the two telecommunications giants will _______ create the largest provider in the region.",
+                options: {
+                    A: "ultimate",
+                    B: "ultimatum",
+                    C: "ultimately",
+                    D: "finality"
+                },
+                correct: "C",
+                explanation: "空格位於助動詞 'will' 與動詞 'create' 之間，必須填入副詞作修飾。'ultimately' 意為「最終、終究」，修飾 create 語意最通順。"
+            },
+            {
+                id: 10,
+                question: "All employees who wish to apply for the tuition reimbursement program must submit their requests _______ October 1st.",
+                options: {
+                    A: "prior to",
+                    B: "ahead",
+                    C: "previous",
+                    D: "in front"
+                },
+                correct: "A",
+                explanation: "prior to 為介係詞片語，等同於 before，意為「在...之前」，可以直接加上日期（October 1st）。ahead 須搭配 of 才能接名詞；previous 是形容詞；in front 須搭配 of。"
+            }
+        ];
+
+        // --- 全域變數狀態管理 ---
+        let timer = null;
+        let timeLeft = 600; // 10分鐘 = 600秒
+        let isExamActive = false;
+        let studentName = "";
+        let studentAnswers = {};
+        let score = 0;
+        let examStartTime = null;
+        let examEndTime = null;
+
+        // --- DOM 元素獲取 ---
+        const identityInput = document.getElementById("student-identity");
+        const startBtn = document.getElementById("start-btn");
+        const setupSection = document.getElementById("setup-section");
+        const quizSection = document.getElementById("quiz-section");
+        const resultSection = document.getElementById("result-section");
+        const displayStudent = document.getElementById("display-student");
+        const timeLeftDisplay = document.getElementById("time-left");
+        const timerDisplayContainer = document.getElementById("timer-display");
+        const questionsContainer = document.getElementById("questions-container");
+        const submitBtn = document.getElementById("submit-btn");
+        const quizForm = document.getElementById("quiz-form");
+
+        // 結果數據展示元素
+        const displayScore = document.getElementById("display-score");
+        const resultFeedback = document.getElementById("result-feedback");
+        const displayElapsed = document.getElementById("display-elapsed");
+        const displayDate = document.getElementById("display-date");
+        const downloadBtn = document.getElementById("download-btn");
+        const reviewBtn = document.getElementById("review-btn");
+        const reviewContainer = document.getElementById("review-container");
+        const reviewQuestions = document.getElementById("review-questions");
+        const restartBtn = document.getElementById("restart-btn");
+
+        // --- 事件監聽 ---
+
+        // 偵測輸入框是否有值，才能點選「開始測驗」
+        identityInput.addEventListener("input", function() {
+            startBtn.disabled = this.value.trim() === "";
+        });
+
+        // 點選開始測驗
+        startBtn.addEventListener("click", startExam);
+
+        // 點選手動提交
+        submitBtn.addEventListener("click", function() {
+            // 確認是否要交卷的友善提示模態
+            const confirmSubmit = confirm("確定要提交考卷並計算分數嗎？");
+            if (confirmSubmit) {
+                finishExam();
+            }
+        });
+
+        // 下載成績單
+        downloadBtn.addEventListener("click", generateAndDownloadReport);
+
+        // 檢視解析
+        reviewBtn.addEventListener("click", function() {
+            if (reviewContainer.style.display === "none") {
+                renderReviewMarkup();
+                reviewContainer.style.display = "block";
+                reviewBtn.textContent = "🙈 隱藏答案解析";
+                // 滾動到解析畫面
+                reviewContainer.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                reviewContainer.style.display = "none";
+                reviewBtn.textContent = "🔍 檢視完整答案解析";
+            }
+        });
+
+        // 重新開始
+        restartBtn.addEventListener("click", resetQuizSystem);
+
+        // --- 功能邏輯核心 ---
+
+        // 1. 開始測驗
+        function startExam() {
+            studentName = identityInput.value.trim();
+            if (!studentName) return;
+
+            // 切換畫面
+            setupSection.style.display = "none";
+            quizSection.style.display = "block";
+            
+            // 顯示資訊
+            displayStudent.textContent = studentName;
+            
+            // 初始化狀態與計時
+            timeLeft = 600; 
+            isExamActive = true;
+            studentAnswers = {};
+            examStartTime = new Date();
+            
+            // 渲染題目
+            renderQuestions();
+            
+            // 啟動倒數計時器
+            startTimer();
+        }
+
+        // 2. 計時器控制
+        function startTimer() {
+            updateTimerDisplay();
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+
+                // 倒數 1 分鐘時給予紅色閃爍警告
+                if (timeLeft <= 60) {
+                    timerDisplayContainer.classList.add("timer-warning");
+                }
+
+                // 時間到強制收卷
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    alert("⏱️ 測驗時間已到！系統將自動強制收卷並計算分數。");
+                    finishExam(true); // true 表示是時間到被強制交卷
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timeLeftDisplay.textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // 3. 渲染測驗題目
+        function renderQuestions() {
+            questionsContainer.innerHTML = "";
+            questions.forEach((q, index) => {
+                const card = document.createElement("div");
+                card.className = "question-card";
+                card.setAttribute("id", `q-card-${q.id}`);
+
+                let optionsHTML = "";
+                for (const [key, value] of Object.entries(q.options)) {
+                    optionsHTML += `
+                        <li class="option-item">
+                            <input type="radio" id="q${q.id}-${key}" name="q${q.id}" value="${key}" onchange="recordAnswer(${q.id}, '${key}')">
+                            <label for="q${q.id}-${key}" class="option-label">
+                                <strong>(${key})</strong> ${value}
+                            </label>
+                        </li>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="question-header">
+                        <span class="question-number">${index + 1}</span>
+                        <div class="question-text">${q.question}</div>
+                    </div>
+                    <ul class="options-list">
+                        ${optionsHTML}
+                    </ul>
+                `;
+                questionsContainer.appendChild(card);
+            });
+        }
+
+        // 記錄學生選擇的答案
+        window.recordAnswer = function(questionId, optionKey) {
+            studentAnswers[questionId] = optionKey;
+        };
+
+        // 4. 計算分數與結束測驗
+        function finishExam(isTimeOut = false) {
+            isExamActive = false;
+            clearInterval(timer);
+            examEndTime = new Date();
+
+            // 計算分數
+            score = 0;
+            questions.forEach(q => {
+                if (studentAnswers[q.id] === q.correct) {
+                    score++;
+                }
+            });
+
+            // 處理未作答的預設值
+            questions.forEach(q => {
+                if (!studentAnswers[q.id]) {
+                    studentAnswers[q.id] = "未作答";
+                }
+            });
+
+            // 切換至結果畫面
+            quizSection.style.display = "none";
+            resultSection.style.display = "block";
+
+            // 渲染結果數據
+            displayScore.textContent = score;
+
+            // 回饋評語
+            if (score >= 9) {
+                resultFeedback.textContent = "👑 優秀卓越！您已具備多益高分實力！";
+            } else if (score >= 7) {
+                resultFeedback.textContent = "👍 表現優異！觀念十分清晰，繼續加油！";
+            } else if (score >= 5) {
+                resultFeedback.textContent = "💡 還不錯！稍加複習弱點題型能更進一步。";
+            } else {
+                resultFeedback.textContent = "📚 加油！多讀多做解析是進步的不二法門。";
+            }
+
+            // 作答時間計算
+            const elapsedTotalSeconds = Math.floor((examEndTime - examStartTime) / 1000);
+            const elapsedMin = Math.floor(elapsedTotalSeconds / 60);
+            const elapsedSec = elapsedTotalSeconds % 60;
+            displayElapsed.textContent = `${elapsedMin} 分 ${elapsedSec} 秒`;
+
+            // 格式化今日日期
+            const today = new Date();
+            displayDate.textContent = today.toLocaleDateString('zh-TW', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // 5. 渲染詳細對答解析
+        function renderReviewMarkup() {
+            reviewQuestions.innerHTML = "";
+            questions.forEach((q, index) => {
+                const card = document.createElement("div");
+                const userAns = studentAnswers[q.id];
+                const isCorrect = userAns === q.correct;
+
+                card.className = `question-card ${isCorrect ? 'correct' : 'incorrect'}`;
+
+                let badgeHTML = isCorrect 
+                    ? `<span class="badge badge-correct">✓ 答對</span>`
+                    : `<span class="badge badge-incorrect">✗ 答錯</span>`;
+
+                let optionsListHTML = "";
+                for (const [key, value] of Object.entries(q.options)) {
+                    let textClass = "";
+                    if (key === q.correct) textClass = "text-success font-weight-bold";
+                    else if (key === userAns && !isCorrect) textClass = "text-danger";
+
+                    optionsListHTML += `
+                        <li style="margin-bottom: 6px; padding: 4px 8px; border-radius: 4px; ${key === q.correct ? 'background-color: #d1fae5;' : ''}">
+                            <strong class="${textClass}">(${key}) ${value}</strong>
+                            ${key === q.correct ? ' 🡄 <b>正確答案</b>' : ''}
+                            ${key === userAns && !isCorrect ? ' 🡄 您的選擇' : ''}
+                        </li>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div style="text-align: right;">${badgeHTML}</div>
+                    <div class="question-header" style="margin-bottom: 10px;">
+                        <span class="question-number" style="${isCorrect ? 'background-color: var(--success);' : 'background-color: var(--danger);'}">${index + 1}</span>
+                        <div class="question-text">${q.question}</div>
+                    </div>
+                    <ul style="list-style: none; margin-left: 40px; margin-bottom: 15px;">
+                        ${optionsListHTML}
+                    </ul>
+                    <div class="user-answer-indicator">
+                        您的答案：<span class="${isCorrect ? 'text-success' : 'text-danger'}" style="font-size: 1.1rem; font-weight: 700;">${userAns}</span>
+                    </div>
+                    <div class="explanation">
+                        <strong>💡 解析：</strong>${q.explanation}
+                    </div>
+                `;
+                reviewQuestions.appendChild(card);
+            });
+        }
+
+        // 6. 生成並下載文字檔成績報告
+        function generateAndDownloadReport() {
+            const today = new Date();
+            const dateStr = today.toLocaleString('zh-TW');
+            
+            const elapsedTotalSeconds = Math.floor((examEndTime - examStartTime) / 1000);
+            const elapsedMin = Math.floor(elapsedTotalSeconds / 60);
+            const elapsedSec = elapsedTotalSeconds % 60;
+            const timeStr = `${elapsedMin}分${elapsedSec}秒`;
+
+            // 構建報告文字內容
+            let reportText = `==================================================\n`;
+            reportText += `       多益 Part 5 模擬練習 - 個人成績報告單       \n`;
+            reportText += `==================================================\n\n`;
+            reportText += `【基本資訊】\n`;
+            reportText += `● 學生姓名/學號： ${studentName}\n`;
+            reportText += `● 測驗日期： ${dateStr}\n`;
+            reportText += `● 限制時間： 10 分鐘 (600秒)\n`;
+            reportText += `● 作答總時間： ${timeStr}\n\n`;
+            reportText += `【成績總覽】\n`;
+            reportText += `● 測驗總題數： 10 題\n`;
+            reportText += `● 答對題數： ${score} 題\n`;
+            reportText += `● 答錯題數： ${10 - score} 題\n`;
+            reportText += `● 正確勝率： ${(score / 10 * 100).toFixed(1)}%\n\n`;
+            reportText += `【作答明細與答案對照】\n`;
+            reportText += `--------------------------------------------------\n`;
+            
+            questions.forEach((q, index) => {
+                const userAns = studentAnswers[q.id] || "未作答";
+                const isCorrect = userAns === q.correct;
+                const status = isCorrect ? "✓ [答對]" : "✗ [答錯]";
+                
+                reportText += `第 ${index + 1} 題: ${q.question}\n`;
+                reportText += `  (A) ${q.options.A}\n`;
+                reportText += `  (B) ${q.options.B}\n`;
+                reportText += `  (C) ${q.options.C}\n`;
+                reportText += `  (D) ${q.options.D}\n`;
+                reportText += `  您的作答: ${userAns}   |  正確答案: ${q.correct}   --> ${status}\n`;
+                reportText += `  解析: ${q.explanation}\n`;
+                reportText += `--------------------------------------------------\n`;
+            });
+            
+            reportText += `\n感謝您使用本測驗系統，請針對錯誤題型多加練習，祝您多益奪得高分！\n`;
+
+            // 建立檔案下載連結
+            const blob = new Blob([reportText], { type: "text/plain;charset=utf-8" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `${studentName}_多益練習成績單.txt`;
+            
+            // 觸發點擊事件下載
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 7. 重設考卷系統，準備下一次考試
+        function resetQuizSystem() {
+            // 清理定時器
+            if (timer) clearInterval(timer);
+            timer = null;
+            
+            // 清理頁面狀態與輸入
+            identityInput.value = "";
+            startBtn.disabled = true;
+            timerDisplayContainer.classList.remove("timer-warning");
+            reviewContainer.style.display = "none";
+            reviewBtn.textContent = "🔍 檢視完整答案解析";
+
+            // 回到身分輸入畫面
+            resultSection.style.display = "none";
+            setupSection.style.display = "flex";
+        }
+    </script>
+</body>
+</html>
